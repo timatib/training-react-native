@@ -1,0 +1,135 @@
+import React, { useState, useRef } from 'react';
+import {
+  Box, HStack, VStack, Text, Input, IconButton, Pressable,
+  useColorModeValue, SafeAreaView,
+} from 'native-base';
+import { KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { useMessages } from '../../features/chat/useMessages';
+import { useSendMessage } from '../../features/chat/useSendMessage';
+import { ChatWidget } from '../../widgets/ChatWidget';
+import { RobotAvatar } from '../../widgets/RobotAvatar';
+
+export function ChatPage() {
+  const [inputText, setInputText] = useState('');
+  const { data: messages = [], isLoading } = useMessages();
+  const sendMutation = useSendMessage();
+
+  const bg = useColorModeValue('gray.50', 'gray.900');
+  const inputBg = useColorModeValue('white', 'gray.800');
+
+  const isResponding = sendMutation.isPending;
+
+  const getEmotion = () => {
+    if (isResponding) return 'thinking';
+    if (messages.length === 0) return 'default';
+    const lastMsg = messages[messages.length - 1];
+    const content = lastMsg?.content?.toLowerCase() || '';
+    if (content.includes('молодец') || content.includes('отлично') || content.includes('супер')) return 'happy';
+    if (content.includes('давай') || content.includes('вперёд') || content.includes('можешь')) return 'motivated';
+    if (content.includes('пропустил') || content.includes('не тренировался')) return 'sad';
+    return 'default';
+  };
+
+  const handleSend = async () => {
+    const text = inputText.trim();
+    if (!text || isResponding) return;
+    setInputText('');
+    try {
+      await sendMutation.mutateAsync(text);
+    } catch (err: any) {
+      const errMsg = err.response?.data?.error || 'Ошибка отправки';
+      Alert.alert('Ошибка', errMsg);
+    }
+  };
+
+  const handleBored = () => {
+    setInputText('Дай мне случайный вызов на день');
+  };
+
+  return (
+    <Box flex={1} bg={bg} safeArea>
+      <KeyboardAvoidingView
+        flex={1}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={90}
+      >
+        {/* Header with Robot */}
+        <Box
+          bg={useColorModeValue('white', 'gray.800')}
+          px={4}
+          py={3}
+          borderBottomWidth={1}
+          borderBottomColor="gray.100"
+          shadow={1}
+        >
+          <HStack alignItems="center" space={3}>
+            <RobotAvatar emotion={getEmotion()} isThinking={isResponding} size={48} />
+            <VStack>
+              <Text fontSize="lg" fontWeight="bold" color="primary.600">
+                Макс
+              </Text>
+              <Text fontSize="xs" color={isResponding ? 'orange.500' : 'green.500'}>
+                {isResponding ? '🤔 Думаю...' : '✅ Онлайн'}
+              </Text>
+            </VStack>
+          </HStack>
+        </Box>
+
+        {/* Messages */}
+        <Box flex={1}>
+          <ChatWidget messages={messages} isLoading={isLoading} isResponding={isResponding} />
+        </Box>
+
+        {/* Input area */}
+        <Box
+          bg={useColorModeValue('white', 'gray.800')}
+          px={3}
+          pt={2}
+          pb={Platform.OS === 'ios' ? 4 : 2}
+          borderTopWidth={1}
+          borderTopColor="gray.100"
+        >
+          {/* Bored button */}
+          <Pressable onPress={handleBored} mb={2} alignSelf="flex-start">
+            <Box bg="primary.50" borderRadius="full" px={3} py={1} borderWidth={1} borderColor="primary.200">
+              <Text fontSize="xs" color="primary.600">😴 Мне скучно</Text>
+            </Box>
+          </Pressable>
+
+          <HStack space={2} alignItems="flex-end">
+            <Input
+              flex={1}
+              value={inputText}
+              onChangeText={setInputText}
+              placeholder="Напишите сообщение..."
+              multiline
+              maxH="100px"
+              bg={inputBg}
+              borderRadius="2xl"
+              px={4}
+              py={2}
+              fontSize="md"
+              onSubmitEditing={handleSend}
+            />
+            <Pressable
+              onPress={handleSend}
+              disabled={!inputText.trim() || isResponding}
+              opacity={!inputText.trim() || isResponding ? 0.5 : 1}
+            >
+              <Box
+                bg="primary.500"
+                borderRadius="full"
+                w={10}
+                h={10}
+                alignItems="center"
+                justifyContent="center"
+              >
+                <Text fontSize="lg" color="white">↑</Text>
+              </Box>
+            </Pressable>
+          </HStack>
+        </Box>
+      </KeyboardAvoidingView>
+    </Box>
+  );
+}

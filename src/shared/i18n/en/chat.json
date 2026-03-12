@@ -1,0 +1,13 @@
+{
+  "title": "AI Trainer",
+  "placeholder": "Write a message...",
+  "send": "Send",
+  "bored": "I'm bored",
+  "thinking": "Thinking...",
+  "clearHistory": "Clear history",
+  "voiceRecord": "Voice message",
+  "sets": "sets",
+  "reps": "reps",
+  "tokenWarning": "Running low on tokens. Consider upgrading your subscription.",
+  "tokenExceeded": "Token limit exceeded. Please upgrade your subscription."
+}
