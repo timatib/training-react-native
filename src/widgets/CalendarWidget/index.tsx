@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, HStack, VStack, Text, Pressable, Icon } from 'native-base';
+import { Box, HStack, Text, Pressable, useColorModeValue } from 'native-base';
 import { WorkoutPlan } from '../../entities/workout/types';
 
 interface CalendarWidgetProps {
@@ -23,7 +23,6 @@ export function CalendarWidget({ workouts, onDayPress }: CalendarWidgetProps) {
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
 
-  // Monday-based offset
   let startOffset = firstDay.getDay() - 1;
   if (startOffset < 0) startOffset = 6;
 
@@ -59,18 +58,23 @@ export function CalendarWidget({ workouts, onDayPress }: CalendarWidgetProps) {
     missed: '#ef4444',
   };
 
+  const cardBg = useColorModeValue('white', 'gray.800');
+  const dayColor = useColorModeValue('gray.700', 'gray.200');
+  const todayBg = useColorModeValue('primary.50', 'primary.900');
+  const headerColor = useColorModeValue('gray.800', 'gray.100');
+
   return (
-    <Box bg="white" borderRadius="xl" shadow={2} p={4}>
+    <Box bg={cardBg} borderRadius="xl" shadow={2} p={4}>
       {/* Header */}
       <HStack justifyContent="space-between" alignItems="center" mb={4}>
         <Pressable onPress={prevMonth} p={2}>
-          <Text fontSize="xl">‹</Text>
+          <Text fontSize="xl" color={headerColor}>‹</Text>
         </Pressable>
-        <Text fontSize="lg" fontWeight="bold">
+        <Text fontSize="lg" fontWeight="bold" color={headerColor}>
           {MONTHS[month]} {year}
         </Text>
         <Pressable onPress={nextMonth} p={2}>
-          <Text fontSize="xl">›</Text>
+          <Text fontSize="xl" color={headerColor}>›</Text>
         </Pressable>
       </HStack>
 
@@ -103,13 +107,13 @@ export function CalendarWidget({ workouts, onDayPress }: CalendarWidgetProps) {
                   justifyContent="center"
                   h={10}
                   borderRadius="full"
-                  bg={isToday ? 'primary.50' : 'transparent'}
+                  bg={isToday ? todayBg : 'transparent'}
                   onPress={() => onDayPress?.(new Date(year, month, day), dayWorkouts)}
                 >
                   <Text
                     fontSize="sm"
                     fontWeight={isToday ? 'bold' : 'normal'}
-                    color={isToday ? 'primary.600' : 'gray.700'}
+                    color={isToday ? 'primary.500' : dayColor}
                   >
                     {day}
                   </Text>

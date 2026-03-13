@@ -26,6 +26,7 @@ export function CalendarPage() {
   );
 
   const bg = useColorModeValue('gray.50', 'gray.900');
+  const cardBg = useColorModeValue('white', 'gray.800');
 
   const handleDayPress = (date: Date, dayWorkouts: WorkoutPlan[]) => {
     if (dayWorkouts.length > 0) {
@@ -60,7 +61,7 @@ export function CalendarPage() {
               { label: 'Выполнено', count: workouts.filter((w) => w.completed).length, color: 'green.500' },
               { label: 'Предстоит', count: workouts.filter((w) => !w.completed).length, color: 'blue.500' },
             ].map((item) => (
-              <Box key={item.label} flex={1} bg="white" borderRadius="xl" p={3} shadow={1} alignItems="center">
+              <Box key={item.label} flex={1} bg={cardBg} borderRadius="xl" p={3} shadow={1} alignItems="center">
                 <Text fontSize="2xl" fontWeight="bold" color={item.color}>
                   {item.count}
                 </Text>

@@ -21,6 +21,8 @@ export function NutritionPage() {
   const logMealMutation = useLogMeal();
 
   const bg = useColorModeValue('gray.50', 'gray.900');
+  const cardBg = useColorModeValue('white', 'gray.800');
+  const primaryTextColor = useColorModeValue('primary.600', 'primary.300');
 
   const handleLogMeal = async () => {
     if (!mealInput.trim()) return;
@@ -41,17 +43,17 @@ export function NutritionPage() {
           <Text fontSize="2xl" fontWeight="bold" mb={4}>Питание</Text>
 
           {/* Calorie summary */}
-          <Box bg="white" borderRadius="xl" p={4} shadow={1} mb={4}>
+          <Box bg={cardBg} borderRadius="xl" p={4} shadow={1} mb={4}>
             <HStack justifyContent="space-between" mb={3}>
               <VStack>
                 <Text fontSize="sm" color="gray.500">Съедено</Text>
-                <Text fontSize="2xl" fontWeight="bold" color="primary.600">
+                <Text fontSize="2xl" fontWeight="bold" color={primaryTextColor}>
                   {Math.round(summary?.totals.calories || 0)} ккал
                 </Text>
               </VStack>
               <VStack alignItems="flex-end">
                 <Text fontSize="sm" color="gray.500">Цель</Text>
-                <Text fontSize="2xl" fontWeight="bold" color="gray.700">
+                <Text fontSize="2xl" fontWeight="bold" color={primaryTextColor}>
                   {summary?.calorieGoal || 2000} ккал
                 </Text>
               </VStack>
@@ -77,7 +79,7 @@ export function NutritionPage() {
                 { label: 'Жиры', value: summary.totals.fat, unit: 'г', color: '#f59e0b' },
                 { label: 'Углев.', value: summary.totals.carbs, unit: 'г', color: '#10b981' },
               ].map((macro) => (
-                <Box key={macro.label} flex={1} bg="white" borderRadius="xl" p={3} shadow={1} alignItems="center">
+                <Box key={macro.label} flex={1} bg={cardBg} borderRadius="xl" p={3} shadow={1} alignItems="center">
                   <Box w={2} h={2} borderRadius="full" bg={macro.color} mb={1} />
                   <Text fontSize="lg" fontWeight="bold">{Math.round(macro.value)}{macro.unit}</Text>
                   <Text fontSize="xs" color="gray.500">{macro.label}</Text>
@@ -108,7 +110,7 @@ export function NutritionPage() {
           {isLoading ? (
             <Text color="gray.400">Загрузка...</Text>
           ) : summary?.logs.length === 0 ? (
-            <Box bg="white" borderRadius="xl" p={6} alignItems="center">
+            <Box bg={cardBg} borderRadius="xl" p={6} alignItems="center">
               <Ionicons name="restaurant-outline" size={48} color="#9ca3af" style={{ marginBottom: 8 }} />
               <Text color="gray.400">Пока нет записей</Text>
               <Text fontSize="sm" color="gray.300">Добавьте первый приём пищи</Text>
@@ -116,11 +118,11 @@ export function NutritionPage() {
           ) : (
             <VStack space={3}>
               {summary?.logs.map((log) => (
-                <Box key={log.id} bg="white" borderRadius="xl" p={4} shadow={1}>
+                <Box key={log.id} bg={cardBg} borderRadius="xl" p={4} shadow={1}>
                   <HStack justifyContent="space-between" mb={1}>
                     <Text fontWeight="600" flex={1} mr={2}>{log.meal}</Text>
                     {log.calories && (
-                      <Text color="primary.600" fontWeight="600">
+                      <Text color={primaryTextColor} fontWeight="600">
                         {Math.round(log.calories)} ккал
                       </Text>
                     )}

@@ -5,6 +5,7 @@ import {
 } from 'native-base';
 import { Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useForm, Controller } from 'react-hook-form';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../app/navigation/AuthNavigator';
@@ -12,17 +13,25 @@ import { useLogin } from '../../features/auth/useLogin';
 
 type Nav = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 
+type FormData = {
+  email: string;
+  password: string;
+};
+
 export function LoginPage() {
   const navigation = useNavigation<Nav>();
   const { handleLogin, isLoading, error } = useLogin();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const bg = useColorModeValue('white', 'gray.900');
+  const primaryTextColor = useColorModeValue('primary.600', 'primary.300');
 
-  const onSubmit = () => {
-    if (email && password) handleLogin(email, password);
+  const { control, handleSubmit, formState: { errors } } = useForm<FormData>({
+    defaultValues: { email: '', password: '' },
+  });
+
+  const onSubmit = (data: FormData) => {
+    handleLogin(data.email, data.password);
   };
 
   return (
@@ -34,8 +43,8 @@ export function LoginPage() {
         <Box flex={1} px={6} pt={16} pb={8}>
           {/* Logo */}
           <VStack alignItems="center" mb={10}>
-            <Ionicons name="hardware-chip-outline" size={64} color="#1e40af" style={{ marginBottom: 12 }} />
-            <Text fontSize="3xl" fontWeight="bold" color="primary.600">
+            <Ionicons name="hardware-chip-outline" size={64} color="#870BF4" style={{ marginBottom: 12 }} />
+            <Text fontSize="3xl" fontWeight="bold" color={primaryTextColor}>
               AI Тренер
             </Text>
             <Text fontSize="md" color="gray.500" mt={1}>
@@ -43,7 +52,7 @@ export function LoginPage() {
             </Text>
           </VStack>
 
-          {/* Error */}
+          {/* Server error */}
           {error && (
             <Box bg="red.50" borderRadius="lg" p={3} mb={4} borderLeftWidth={4} borderLeftColor="red.500">
               <Text color="red.600" fontSize="sm">{error}</Text>
@@ -52,45 +61,67 @@ export function LoginPage() {
 
           {/* Form */}
           <VStack space={4}>
-            <FormControl>
+            <FormControl isInvalid={!!errors.email}>
               <FormControl.Label>Email</FormControl.Label>
-              <Input
-                value={email}
-                onChangeText={setEmail}
-                placeholder="your@email.com"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                size="lg"
+              <Controller
+                control={control}
+                name="email"
+                rules={{
+                  required: 'Введите email',
+                  pattern: { value: /\S+@\S+\.\S+/, message: 'Неверный формат email' },
+                }}
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    value={value}
+                    onChangeText={onChange}
+                    placeholder="your@email.com"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    size="lg"
+                  />
+                )}
               />
+              <FormControl.ErrorMessage>{errors.email?.message}</FormControl.ErrorMessage>
             </FormControl>
 
-            <FormControl>
+            <FormControl isInvalid={!!errors.password}>
               <FormControl.Label>Пароль</FormControl.Label>
-              <Input
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Минимум 8 символов"
-                type={showPassword ? 'text' : 'password'}
-                size="lg"
-                InputRightElement={
-                  <Pressable onPress={() => setShowPassword(!showPassword)} mr={2}>
-                    <Ionicons
-                      name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                      size={20}
-                      color="#9ca3af"
-                    />
-                  </Pressable>
-                }
+              <Controller
+                control={control}
+                name="password"
+                rules={{
+                  required: 'Введите пароль',
+                  minLength: { value: 8, message: 'Минимум 8 символов' },
+                }}
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    value={value}
+                    onChangeText={onChange}
+                    placeholder="Минимум 8 символов"
+                    type={showPassword ? 'text' : 'password'}
+                    size="lg"
+                    InputRightElement={
+                      <Pressable onPress={() => setShowPassword(!showPassword)} mr={2}>
+                        <Ionicons
+                          name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                          size={20}
+                          color="#9ca3af"
+                        />
+                      </Pressable>
+                    }
+                  />
+                )}
               />
+              <FormControl.ErrorMessage>{errors.password?.message}</FormControl.ErrorMessage>
             </FormControl>
 
             <Pressable onPress={() => navigation.navigate('ForgotPassword')} alignSelf="flex-end">
-              <Text color="primary.500" fontSize="sm">Забыли пароль?</Text>
+              <Text color={primaryTextColor} fontSize="sm">Забыли пароль?</Text>
             </Pressable>
 
             <Button
-              onPress={onSubmit}
+              onPress={handleSubmit(onSubmit)}
               isLoading={isLoading}
               isLoadingText="Вход..."
               size="lg"
@@ -105,7 +136,7 @@ export function LoginPage() {
           <HStack justifyContent="center" mt={8} space={1}>
             <Text color="gray.500">Нет аккаунта?</Text>
             <Pressable onPress={() => navigation.navigate('Register')}>
-              <Text color="primary.500" fontWeight="600">Зарегистрироваться</Text>
+              <Text color={primaryTextColor} fontWeight="600">Зарегистрироваться</Text>
             </Pressable>
           </HStack>
         </Box>

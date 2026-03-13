@@ -17,6 +17,11 @@ export function ChatPage() {
 
   const bg = useColorModeValue('gray.50', 'gray.900');
   const inputBg = useColorModeValue('white', 'gray.800');
+  const borderColor = useColorModeValue('gray.100', 'gray.700');
+  const boredBg = useColorModeValue('primary.50', 'primary.900');
+  const boredBorder = useColorModeValue('primary.200', 'primary.700');
+  const primaryTextColor = useColorModeValue('primary.600', 'primary.300');
+  const primaryIconColor = useColorModeValue('#870BF4', '#B263F8');
 
   const isResponding = sendMutation.isPending;
 
@@ -60,13 +65,13 @@ export function ChatPage() {
           px={4}
           py={3}
           borderBottomWidth={1}
-          borderBottomColor="gray.100"
+          borderBottomColor={borderColor}
           shadow={1}
         >
           <HStack alignItems="center" space={3}>
             <RobotAvatar emotion={getEmotion()} isThinking={isResponding} size={48} />
             <VStack>
-              <Text fontSize="lg" fontWeight="bold" color="primary.600">
+              <Text fontSize="lg" fontWeight="bold" color={primaryTextColor}>
                 Макс
               </Text>
               <HStack alignItems="center" space={1}>
@@ -95,13 +100,13 @@ export function ChatPage() {
           pt={2}
           pb={Platform.OS === 'ios' ? 4 : 2}
           borderTopWidth={1}
-          borderTopColor="gray.100"
+          borderTopColor={borderColor}
         >
           {/* Bored button */}
           <Pressable onPress={handleBored} mb={2} alignSelf="flex-start">
-            <Box bg="primary.50" borderRadius="full" px={3} py={1} borderWidth={1} borderColor="primary.200" flexDirection="row" alignItems="center" style={{ gap: 4 }}>
-              <Ionicons name="moon-outline" size={12} color="#1e40af" />
-              <Text fontSize="xs" color="primary.600">Мне скучно</Text>
+            <Box bg={boredBg} borderRadius="full" px={3} py={1} borderWidth={1} borderColor={boredBorder} flexDirection="row" alignItems="center" style={{ gap: 4 }}>
+              <Ionicons name="moon-outline" size={12} color={primaryIconColor} />
+              <Text fontSize="xs" color={primaryTextColor}>Мне скучно</Text>
             </Box>
           </Pressable>
 

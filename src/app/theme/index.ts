@@ -28,8 +28,64 @@ export const theme = extendTheme({
     Button: {
       defaultProps: { colorScheme: 'primary' },
     },
+    Text: {
+      baseStyle: {
+        _dark: { color: 'gray.100' },
+      },
+    },
     Input: {
       defaultProps: { borderRadius: 'lg' },
+      baseStyle: {
+        _dark: {
+          bg: 'gray.800',
+          borderColor: 'gray.600',
+          color: 'gray.100',
+          placeholderTextColor: 'gray.500',
+        },
+      },
+    },
+    Select: {
+      baseStyle: {
+        _dark: {
+          bg: 'gray.800',
+          borderColor: 'gray.600',
+          color: 'gray.100',
+        },
+      },
+    },
+    FormControlLabel: {
+      baseStyle: {
+        _dark: {
+          _text: { color: 'gray.300' },
+        },
+      },
+    },
+    ModalContent: {
+      baseStyle: {
+        _dark: { bg: 'gray.800' },
+      },
+    },
+    ModalHeader: {
+      baseStyle: {
+        _dark: {
+          bg: 'gray.800',
+          borderBottomColor: 'gray.700',
+          _text: { color: 'gray.100' },
+        },
+      },
+    },
+    ModalBody: {
+      baseStyle: {
+        _dark: { bg: 'gray.800' },
+      },
+    },
+    ModalFooter: {
+      baseStyle: {
+        _dark: {
+          bg: 'gray.800',
+          borderTopColor: 'gray.700',
+        },
+      },
     },
   },
   fontConfig: {

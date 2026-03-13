@@ -1,14 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box, VStack, HStack, Text, Input, Button, ScrollView,
-  Select, Switch, useColorModeValue, Pressable, Avatar, Modal,
+  Select, Switch, useColorModeValue, Avatar, Modal,
   FormControl, useColorMode,
 } from 'native-base';
 import { Ionicons } from '@expo/vector-icons';
+import { useForm, Controller } from 'react-hook-form';
 import { useProfile, useUpdateProfile } from '../../features/profile/useProfile';
 import { useAuthStore } from '../../features/auth/authStore';
-import { useNavigation } from '@react-navigation/native';
 import api from '../../shared/api/axios';
+
+type ProfileFormData = {
+  name: string;
+  slogan: string;
+  age: string;
+  weight: string;
+  height: string;
+  goal: string;
+  gender: string;
+  fitnessLevel: string;
+  workoutPlace: string;
+  aiStyle: string;
+  language: string;
+};
+
+type PasswordFormData = {
+  oldPassword: string;
+  newPassword: string;
+};
 
 export function ProfilePage() {
   const { data: profile, isLoading } = useProfile();
@@ -16,30 +35,25 @@ export function ProfilePage() {
   const { logout } = useAuthStore();
   const { colorMode, toggleColorMode } = useColorMode();
 
-  const [form, setForm] = useState({
-    name: '',
-    slogan: '',
-    age: '',
-    weight: '',
-    height: '',
-    goal: '',
-    gender: '',
-    fitnessLevel: '',
-    workoutPlace: '',
-    aiStyle: '',
-    language: '',
-  });
   const [saved, setSaved] = useState(false);
   const [pwModal, setPwModal] = useState(false);
-  const [oldPw, setOldPw] = useState('');
-  const [newPw, setNewPw] = useState('');
   const [pwError, setPwError] = useState('');
 
   const bg = useColorModeValue('gray.50', 'gray.900');
+  const cardBg = useColorModeValue('white', 'gray.800');
+
+  // Profile form
+  const { control, handleSubmit, reset } = useForm<ProfileFormData>({
+    defaultValues: {
+      name: '', slogan: '', age: '', weight: '', height: '',
+      goal: '', gender: '', fitnessLevel: '', workoutPlace: '',
+      aiStyle: 'NORMAL', language: 'ru',
+    },
+  });
 
   useEffect(() => {
     if (profile) {
-      setForm({
+      reset({
         name: profile.name || '',
         slogan: profile.slogan || '',
         age: profile.age?.toString() || '',
@@ -53,33 +67,45 @@ export function ProfilePage() {
         language: profile.language || 'ru',
       });
     }
-  }, [profile]);
+  }, [profile, reset]);
 
-  const handleSave = async () => {
+  const onSave = async (data: ProfileFormData) => {
     await updateMutation.mutateAsync({
-      name: form.name || undefined,
-      slogan: form.slogan || undefined,
-      age: form.age ? parseInt(form.age) : undefined,
-      weight: form.weight ? parseFloat(form.weight) : undefined,
-      height: form.height ? parseFloat(form.height) : undefined,
-      goal: form.goal || undefined,
-      gender: (form.gender as any) || undefined,
-      fitnessLevel: (form.fitnessLevel as any) || undefined,
-      workoutPlace: (form.workoutPlace as any) || undefined,
-      aiStyle: (form.aiStyle as any) || undefined,
-      language: form.language || undefined,
+      name: data.name || undefined,
+      slogan: data.slogan || undefined,
+      age: data.age ? parseInt(data.age) : undefined,
+      weight: data.weight ? parseFloat(data.weight) : undefined,
+      height: data.height ? parseFloat(data.height) : undefined,
+      goal: data.goal || undefined,
+      gender: (data.gender as any) || undefined,
+      fitnessLevel: (data.fitnessLevel as any) || undefined,
+      workoutPlace: (data.workoutPlace as any) || undefined,
+      aiStyle: (data.aiStyle as any) || undefined,
+      language: data.language || undefined,
     });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
 
-  const handleChangePassword = async () => {
+  // Password form
+  const {
+    control: pwControl,
+    handleSubmit: handlePwSubmit,
+    reset: resetPw,
+    formState: { errors: pwErrors },
+  } = useForm<PasswordFormData>({
+    defaultValues: { oldPassword: '', newPassword: '' },
+  });
+
+  const onChangePassword = async (data: PasswordFormData) => {
     setPwError('');
-    if (newPw.length < 8) { setPwError('Пароль не менее 8 символов'); return; }
     try {
-      await api.post('/api/auth/change-password', { currentPassword: oldPw, newPassword: newPw });
+      await api.post('/api/auth/change-password', {
+        currentPassword: data.oldPassword,
+        newPassword: data.newPassword,
+      });
       setPwModal(false);
-      setOldPw(''); setNewPw('');
+      resetPw();
     } catch (err: any) {
       setPwError(err.response?.data?.error || 'Ошибка смены пароля');
     }
@@ -103,97 +129,157 @@ export function ProfilePage() {
               {profile?.name?.charAt(0)?.toUpperCase() || '?'}
             </Avatar>
             <Text fontSize="xl" fontWeight="bold">{profile?.name || 'Пользователь'}</Text>
-            <Input
-              value={form.slogan}
-              onChangeText={(v) => setForm((f) => ({ ...f, slogan: v }))}
-              placeholder="Ваш слоган..."
-              textAlign="center"
-              variant="unstyled"
-              fontSize="sm"
-              color="gray.500"
-              mt={1}
+            <Controller
+              control={control}
+              name="slogan"
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  value={value}
+                  onChangeText={onChange}
+                  placeholder="Ваш слоган..."
+                  textAlign="center"
+                  variant="unstyled"
+                  fontSize="sm"
+                  color="gray.500"
+                  mt={1}
+                />
+              )}
             />
           </VStack>
 
           {/* Personal info */}
-          <Box bg="white" borderRadius="xl" p={4} mb={4} shadow={1}>
+          <Box bg={cardBg} borderRadius="xl" p={4} mb={4} shadow={1}>
             <Text fontSize="lg" fontWeight="bold" mb={4}>Личные данные</Text>
 
             <VStack space={4}>
               <FormControl>
                 <FormControl.Label>Имя</FormControl.Label>
-                <Input value={form.name} onChangeText={(v) => setForm((f) => ({ ...f, name: v }))} />
+                <Controller
+                  control={control}
+                  name="name"
+                  render={({ field: { onChange, value } }) => (
+                    <Input value={value} onChangeText={onChange} />
+                  )}
+                />
               </FormControl>
 
               <HStack space={3}>
                 <FormControl flex={1}>
                   <FormControl.Label>Возраст</FormControl.Label>
-                  <Input value={form.age} onChangeText={(v) => setForm((f) => ({ ...f, age: v }))} keyboardType="numeric" />
+                  <Controller
+                    control={control}
+                    name="age"
+                    render={({ field: { onChange, value } }) => (
+                      <Input value={value} onChangeText={onChange} keyboardType="numeric" />
+                    )}
+                  />
                 </FormControl>
                 <FormControl flex={1}>
                   <FormControl.Label>Пол</FormControl.Label>
-                  <Select selectedValue={form.gender} onValueChange={(v) => setForm((f) => ({ ...f, gender: v }))}>
-                    <Select.Item label="Мужской" value="MALE" />
-                    <Select.Item label="Женский" value="FEMALE" />
-                    <Select.Item label="Другой" value="OTHER" />
-                  </Select>
+                  <Controller
+                    control={control}
+                    name="gender"
+                    render={({ field: { onChange, value } }) => (
+                      <Select selectedValue={value} onValueChange={onChange}>
+                        <Select.Item label="Мужской" value="MALE" />
+                        <Select.Item label="Женский" value="FEMALE" />
+                        <Select.Item label="Другой" value="OTHER" />
+                      </Select>
+                    )}
+                  />
                 </FormControl>
               </HStack>
 
               <HStack space={3}>
                 <FormControl flex={1}>
                   <FormControl.Label>Вес (кг)</FormControl.Label>
-                  <Input value={form.weight} onChangeText={(v) => setForm((f) => ({ ...f, weight: v }))} keyboardType="decimal-pad" />
+                  <Controller
+                    control={control}
+                    name="weight"
+                    render={({ field: { onChange, value } }) => (
+                      <Input value={value} onChangeText={onChange} keyboardType="decimal-pad" />
+                    )}
+                  />
                 </FormControl>
                 <FormControl flex={1}>
                   <FormControl.Label>Рост (см)</FormControl.Label>
-                  <Input value={form.height} onChangeText={(v) => setForm((f) => ({ ...f, height: v }))} keyboardType="numeric" />
+                  <Controller
+                    control={control}
+                    name="height"
+                    render={({ field: { onChange, value } }) => (
+                      <Input value={value} onChangeText={onChange} keyboardType="numeric" />
+                    )}
+                  />
                 </FormControl>
               </HStack>
 
               <FormControl>
                 <FormControl.Label>Уровень</FormControl.Label>
-                <Select selectedValue={form.fitnessLevel} onValueChange={(v) => setForm((f) => ({ ...f, fitnessLevel: v }))}>
-                  <Select.Item label="Начинающий" value="BEGINNER" />
-                  <Select.Item label="Средний" value="INTERMEDIATE" />
-                  <Select.Item label="Продвинутый" value="ADVANCED" />
-                </Select>
+                <Controller
+                  control={control}
+                  name="fitnessLevel"
+                  render={({ field: { onChange, value } }) => (
+                    <Select selectedValue={value} onValueChange={onChange}>
+                      <Select.Item label="Начинающий" value="BEGINNER" />
+                      <Select.Item label="Средний" value="INTERMEDIATE" />
+                      <Select.Item label="Продвинутый" value="ADVANCED" />
+                    </Select>
+                  )}
+                />
               </FormControl>
 
               <FormControl>
                 <FormControl.Label>Место тренировок</FormControl.Label>
-                <Select selectedValue={form.workoutPlace} onValueChange={(v) => setForm((f) => ({ ...f, workoutPlace: v }))}>
-                  <Select.Item label="Зал" value="GYM" />
-                  <Select.Item label="Дома" value="HOME" />
-                  <Select.Item label="На улице" value="OUTDOOR" />
-                </Select>
+                <Controller
+                  control={control}
+                  name="workoutPlace"
+                  render={({ field: { onChange, value } }) => (
+                    <Select selectedValue={value} onValueChange={onChange}>
+                      <Select.Item label="Зал" value="GYM" />
+                      <Select.Item label="Дома" value="HOME" />
+                      <Select.Item label="На улице" value="OUTDOOR" />
+                    </Select>
+                  )}
+                />
               </FormControl>
 
               <FormControl>
                 <FormControl.Label>Цель</FormControl.Label>
-                <Input
-                  value={form.goal}
-                  onChangeText={(v) => setForm((f) => ({ ...f, goal: v }))}
-                  placeholder="Например: Похудеть на 10 кг к лету"
-                  multiline
-                  numberOfLines={2}
+                <Controller
+                  control={control}
+                  name="goal"
+                  render={({ field: { onChange, value } }) => (
+                    <Input
+                      value={value}
+                      onChangeText={onChange}
+                      placeholder="Например: Похудеть на 10 кг к лету"
+                      multiline
+                      numberOfLines={2}
+                    />
+                  )}
                 />
               </FormControl>
             </VStack>
           </Box>
 
           {/* AI & preferences */}
-          <Box bg="white" borderRadius="xl" p={4} mb={4} shadow={1}>
+          <Box bg={cardBg} borderRadius="xl" p={4} mb={4} shadow={1}>
             <Text fontSize="lg" fontWeight="bold" mb={4}>Настройки ИИ</Text>
 
             <VStack space={4}>
               <FormControl>
                 <FormControl.Label>Стиль общения ИИ</FormControl.Label>
-                <Select selectedValue={form.aiStyle} onValueChange={(v) => setForm((f) => ({ ...f, aiStyle: v }))}>
-                  <Select.Item label="Строгий" value="STRICT" />
-                  <Select.Item label="Обычный" value="NORMAL" />
-                  <Select.Item label="Шуточный" value="FUN" />
-                </Select>
+                <Controller
+                  control={control}
+                  name="aiStyle"
+                  render={({ field: { onChange, value } }) => (
+                    <Select selectedValue={value} onValueChange={onChange}>
+                      <Select.Item label="Строгий" value="STRICT" />
+                      <Select.Item label="Обычный" value="NORMAL" />
+                      <Select.Item label="Шуточный" value="FUN" />
+                    </Select>
+                  )}
+                />
               </FormControl>
 
               <HStack justifyContent="space-between" alignItems="center">
@@ -202,22 +288,29 @@ export function ProfilePage() {
                   isChecked={colorMode === 'dark'}
                   onToggle={toggleColorMode}
                   colorScheme="primary"
+                  size="sm"
                 />
               </HStack>
 
               <FormControl>
                 <FormControl.Label>Язык</FormControl.Label>
-                <Select selectedValue={form.language} onValueChange={(v) => setForm((f) => ({ ...f, language: v }))}>
-                  <Select.Item label="Русский" value="ru" />
-                  <Select.Item label="English" value="en" />
-                </Select>
+                <Controller
+                  control={control}
+                  name="language"
+                  render={({ field: { onChange, value } }) => (
+                    <Select selectedValue={value} onValueChange={onChange}>
+                      <Select.Item label="Русский" value="ru" />
+                      <Select.Item label="English" value="en" />
+                    </Select>
+                  )}
+                />
               </FormControl>
             </VStack>
           </Box>
 
           {/* Save button */}
           <Button
-            onPress={handleSave}
+            onPress={handleSubmit(onSave)}
             isLoading={updateMutation.isPending}
             isLoadingText="Сохранение..."
             size="lg"
@@ -239,7 +332,7 @@ export function ProfilePage() {
               variant="outline"
               borderRadius="xl"
               onPress={() => setPwModal(true)}
-              leftIcon={<Ionicons name="lock-closed-outline" size={16} color="#1e40af" />}
+              leftIcon={<Ionicons name="lock-closed-outline" size={16} color="#870BF4" />}
             >
               Сменить пароль
             </Button>
@@ -257,27 +350,48 @@ export function ProfilePage() {
       </ScrollView>
 
       {/* Change password modal */}
-      <Modal isOpen={pwModal} onClose={() => setPwModal(false)}>
+      <Modal isOpen={pwModal} onClose={() => { setPwModal(false); resetPw(); setPwError(''); }}>
         <Modal.Content>
           <Modal.CloseButton />
           <Modal.Header>Сменить пароль</Modal.Header>
           <Modal.Body>
             <VStack space={3}>
               {pwError && <Text color="red.500" fontSize="sm">{pwError}</Text>}
-              <FormControl>
+
+              <FormControl isInvalid={!!pwErrors.oldPassword}>
                 <FormControl.Label>Текущий пароль</FormControl.Label>
-                <Input value={oldPw} onChangeText={setOldPw} type="password" />
+                <Controller
+                  control={pwControl}
+                  name="oldPassword"
+                  rules={{ required: 'Введите текущий пароль' }}
+                  render={({ field: { onChange, value } }) => (
+                    <Input value={value} onChangeText={onChange} type="password" />
+                  )}
+                />
+                <FormControl.ErrorMessage>{pwErrors.oldPassword?.message}</FormControl.ErrorMessage>
               </FormControl>
-              <FormControl>
+
+              <FormControl isInvalid={!!pwErrors.newPassword}>
                 <FormControl.Label>Новый пароль</FormControl.Label>
-                <Input value={newPw} onChangeText={setNewPw} type="password" />
+                <Controller
+                  control={pwControl}
+                  name="newPassword"
+                  rules={{
+                    required: 'Введите новый пароль',
+                    minLength: { value: 8, message: 'Минимум 8 символов' },
+                  }}
+                  render={({ field: { onChange, value } }) => (
+                    <Input value={value} onChangeText={onChange} type="password" />
+                  )}
+                />
+                <FormControl.ErrorMessage>{pwErrors.newPassword?.message}</FormControl.ErrorMessage>
               </FormControl>
             </VStack>
           </Modal.Body>
           <Modal.Footer>
             <Button.Group space={2}>
-              <Button variant="ghost" onPress={() => setPwModal(false)}>Отмена</Button>
-              <Button onPress={handleChangePassword}>Сменить</Button>
+              <Button variant="ghost" onPress={() => { setPwModal(false); resetPw(); setPwError(''); }}>Отмена</Button>
+              <Button onPress={handlePwSubmit(onChangePassword)}>Сменить</Button>
             </Button.Group>
           </Modal.Footer>
         </Modal.Content>

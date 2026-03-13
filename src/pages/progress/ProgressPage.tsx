@@ -42,6 +42,11 @@ export function ProgressPage() {
   );
 
   const bg = useColorModeValue('gray.50', 'gray.900');
+  const cardBg = useColorModeValue('white', 'gray.800');
+  const aiBg = useColorModeValue('primary.50', 'primary.900');
+  const aiTextColor = useColorModeValue('gray.700', 'gray.300');
+  const primaryTextColor = useColorModeValue('primary.600', 'primary.300');
+  const primaryIconColor = useColorModeValue('#870BF4', '#B263F8');
 
   const handleAddProgress = async () => {
     if (noteInput.trim().length < 10) return;
@@ -72,7 +77,7 @@ export function ProgressPage() {
                 </Text>
                 {(streak?.currentDays || 0) >= 7 && (
                   <Box bg="white" borderRadius="full" px={3} py={1} mt={2} alignSelf="flex-start" flexDirection="row" alignItems="center" style={{ gap: 4 }}>
-                    <Ionicons name="trophy" size={12} color="#1e40af" />
+                    <Ionicons name="trophy" size={12} color="#870BF4" />
                     <Text color="primary.600" fontSize="xs" fontWeight="bold">7 дней!</Text>
                   </Box>
                 )}
@@ -84,7 +89,7 @@ export function ProgressPage() {
           {/* Add progress button */}
           <Pressable onPress={() => setModalOpen(true)} mb={4}>
             <Box
-              bg="white"
+              bg={cardBg}
               borderRadius="xl"
               p={4}
               borderWidth={2}
@@ -92,8 +97,8 @@ export function ProgressPage() {
               borderStyle="dashed"
               alignItems="center"
             >
-              <Ionicons name="create-outline" size={28} color="#1e40af" />
-              <Text color="primary.500" fontWeight="600" mt={1}>Записать прогресс</Text>
+              <Ionicons name="create-outline" size={28} color={primaryIconColor} />
+              <Text color={primaryTextColor} fontWeight="600" mt={1}>Записать прогресс</Text>
               <Text fontSize="sm" color="gray.400">ИИ проанализирует и даст обратную связь</Text>
             </Box>
           </Pressable>
@@ -104,7 +109,7 @@ export function ProgressPage() {
           {isLoading ? (
             <Text color="gray.400">Загрузка...</Text>
           ) : logs.length === 0 ? (
-            <Box bg="white" borderRadius="xl" p={6} alignItems="center">
+            <Box bg={cardBg} borderRadius="xl" p={6} alignItems="center">
               <Ionicons name="bar-chart-outline" size={48} color="#9ca3af" style={{ marginBottom: 8 }} />
               <Text color="gray.400">Записей пока нет</Text>
               <Text fontSize="sm" color="gray.300">Добавьте первую запись о прогрессе</Text>
@@ -112,7 +117,7 @@ export function ProgressPage() {
           ) : (
             <VStack space={3}>
               {logs.map((log) => (
-                <Box key={log.id} bg="white" borderRadius="xl" p={4} shadow={1}>
+                <Box key={log.id} bg={cardBg} borderRadius="xl" p={4} shadow={1}>
                   <Text fontSize="xs" color="gray.400" mb={2}>
                     {new Date(log.createdAt).toLocaleDateString('ru-RU', {
                       day: 'numeric', month: 'long', year: 'numeric',
@@ -120,9 +125,9 @@ export function ProgressPage() {
                   </Text>
                   <Text fontWeight="600" mb={2}>{log.note}</Text>
                   {log.aiResponse && (
-                    <Box bg="primary.50" borderRadius="lg" p={3} borderLeftWidth={3} borderLeftColor="primary.400">
-                      <Text fontSize="xs" color="primary.600" fontWeight="600" mb={1}>🤖 Макс:</Text>
-                      <Text fontSize="sm" color="gray.700">{log.aiResponse}</Text>
+                    <Box bg={aiBg} borderRadius="lg" p={3} borderLeftWidth={3} borderLeftColor="primary.400">
+                      <Text fontSize="xs" color={primaryTextColor} fontWeight="600" mb={1}>🤖 Макс:</Text>
+                      <Text fontSize="sm" color={aiTextColor}>{log.aiResponse}</Text>
                     </Box>
                   )}
                 </Box>
