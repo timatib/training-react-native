@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Box, VStack, HStack, Text, ScrollView, Modal, Button, useColorModeValue,
 } from 'native-base';
+import { useFocusEffect } from '@react-navigation/native';
 import { useCalendar, useCompleteWorkout } from '../../features/calendar/useCalendar';
 import { CalendarWidget } from '../../widgets/CalendarWidget';
 import { WorkoutPlan } from '../../entities/workout/types';
@@ -15,8 +16,14 @@ export function CalendarPage() {
   const [selectedWorkouts, setSelectedWorkouts] = useState<WorkoutPlan[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
 
-  const { data: workouts = [], isLoading } = useCalendar(currentMonth);
+  const { data: workouts = [], isLoading, refetch } = useCalendar(currentMonth);
   const completeMutation = useCompleteWorkout();
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   const bg = useColorModeValue('gray.50', 'gray.900');
 

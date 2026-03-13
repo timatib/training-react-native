@@ -31,6 +31,7 @@ i18n.use(initReactI18next).init({
   ns: ['common', 'auth', 'chat', 'profile'],
   defaultNS: 'common',
   interpolation: { escapeValue: false },
+  compatibilityJSON: 'v3',
 });
 
 export default i18n;

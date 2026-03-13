@@ -4,6 +4,7 @@ import {
   Select, Switch, useColorModeValue, Pressable, Avatar, Modal,
   FormControl, useColorMode,
 } from 'native-base';
+import { Ionicons } from '@expo/vector-icons';
 import { useProfile, useUpdateProfile } from '../../features/profile/useProfile';
 import { useAuthStore } from '../../features/auth/authStore';
 import { useNavigation } from '@react-navigation/native';
@@ -162,9 +163,9 @@ export function ProfilePage() {
               <FormControl>
                 <FormControl.Label>Место тренировок</FormControl.Label>
                 <Select selectedValue={form.workoutPlace} onValueChange={(v) => setForm((f) => ({ ...f, workoutPlace: v }))}>
-                  <Select.Item label="🏋️ Зал" value="GYM" />
-                  <Select.Item label="🏠 Дома" value="HOME" />
-                  <Select.Item label="🌳 На улице" value="OUTDOOR" />
+                  <Select.Item label="Зал" value="GYM" />
+                  <Select.Item label="Дома" value="HOME" />
+                  <Select.Item label="На улице" value="OUTDOOR" />
                 </Select>
               </FormControl>
 
@@ -189,9 +190,9 @@ export function ProfilePage() {
               <FormControl>
                 <FormControl.Label>Стиль общения ИИ</FormControl.Label>
                 <Select selectedValue={form.aiStyle} onValueChange={(v) => setForm((f) => ({ ...f, aiStyle: v }))}>
-                  <Select.Item label="😤 Строгий" value="STRICT" />
-                  <Select.Item label="😊 Обычный" value="NORMAL" />
-                  <Select.Item label="😄 Шуточный" value="FUN" />
+                  <Select.Item label="Строгий" value="STRICT" />
+                  <Select.Item label="Обычный" value="NORMAL" />
+                  <Select.Item label="Шуточный" value="FUN" />
                 </Select>
               </FormControl>
 
@@ -207,8 +208,8 @@ export function ProfilePage() {
               <FormControl>
                 <FormControl.Label>Язык</FormControl.Label>
                 <Select selectedValue={form.language} onValueChange={(v) => setForm((f) => ({ ...f, language: v }))}>
-                  <Select.Item label="🇷🇺 Русский" value="ru" />
-                  <Select.Item label="🇬🇧 English" value="en" />
+                  <Select.Item label="Русский" value="ru" />
+                  <Select.Item label="English" value="en" />
                 </Select>
               </FormControl>
             </VStack>
@@ -224,16 +225,32 @@ export function ProfilePage() {
             mb={3}
             colorScheme={saved ? 'green' : 'primary'}
           >
-            {saved ? '✅ Сохранено!' : 'Сохранить изменения'}
+            {saved ? (
+              <HStack space={2} alignItems="center">
+                <Ionicons name="checkmark-circle" size={18} color="white" />
+                <Text color="white" fontWeight="600">Сохранено!</Text>
+              </HStack>
+            ) : 'Сохранить изменения'}
           </Button>
 
           {/* Other actions */}
           <VStack space={2} mb={6}>
-            <Button variant="outline" borderRadius="xl" onPress={() => setPwModal(true)}>
-              🔑 Сменить пароль
+            <Button
+              variant="outline"
+              borderRadius="xl"
+              onPress={() => setPwModal(true)}
+              leftIcon={<Ionicons name="lock-closed-outline" size={16} color="#1e40af" />}
+            >
+              Сменить пароль
             </Button>
-            <Button variant="outline" colorScheme="red" borderRadius="xl" onPress={logout}>
-              🚪 Выйти
+            <Button
+              variant="outline"
+              colorScheme="red"
+              borderRadius="xl"
+              onPress={logout}
+              leftIcon={<Ionicons name="log-out-outline" size={16} color="#ef4444" />}
+            >
+              Выйти
             </Button>
           </VStack>
         </Box>

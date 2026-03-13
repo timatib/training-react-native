@@ -22,6 +22,9 @@ export function useUpdateProfile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['nutrition-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['nutrition'] });
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
     },
   });
 }

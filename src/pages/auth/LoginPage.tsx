@@ -4,6 +4,7 @@ import {
   FormControl, ScrollView, useColorModeValue, KeyboardAvoidingView,
 } from 'native-base';
 import { Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../app/navigation/AuthNavigator';
@@ -33,7 +34,7 @@ export function LoginPage() {
         <Box flex={1} px={6} pt={16} pb={8}>
           {/* Logo */}
           <VStack alignItems="center" mb={10}>
-            <Text fontSize="6xl" mb={3}>🤖</Text>
+            <Ionicons name="hardware-chip-outline" size={64} color="#1e40af" style={{ marginBottom: 12 }} />
             <Text fontSize="3xl" fontWeight="bold" color="primary.600">
               AI Тренер
             </Text>
@@ -74,9 +75,11 @@ export function LoginPage() {
                 size="lg"
                 InputRightElement={
                   <Pressable onPress={() => setShowPassword(!showPassword)} mr={2}>
-                    <Text fontSize="sm" color="gray.500">
-                      {showPassword ? '🙈' : '👁'}
-                    </Text>
+                    <Ionicons
+                      name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                      size={20}
+                      color="#9ca3af"
+                    />
                   </Pressable>
                 }
               />

@@ -1,22 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Box, VStack, HStack, Text, ScrollView, Button, Modal, Input,
   useColorModeValue, Pressable,
 } from 'native-base';
+import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { useProgressLogs, useAddProgress } from '../../features/progress/useProgress';
 import { useStreak } from '../../features/streak/useStreak';
 
 function TreeVisual({ waterDrops }: { waterDrops: number }) {
-  let tree = '🌱';
-  if (waterDrops >= 21) tree = '🌳';
-  else if (waterDrops >= 8) tree = '🌿';
+  const iconName = waterDrops >= 21 ? 'leaf' : waterDrops >= 8 ? 'leaf-outline' : 'flower-outline';
+  const iconColor = waterDrops >= 21 ? '#16a34a' : waterDrops >= 8 ? '#22c55e' : '#86efac';
+  const iconSize = waterDrops >= 21 ? 52 : waterDrops >= 8 ? 44 : 36;
 
   return (
     <Box alignItems="center">
-      <Text fontSize="5xl">{tree}</Text>
-      <Text fontSize="xs" color="gray.500" mt={1}>
-        {waterDrops} 💧 капель
-      </Text>
+      <Ionicons name={iconName} size={iconSize} color={iconColor} />
+      <HStack alignItems="center" space={1} mt={1}>
+        <Ionicons name="water-outline" size={12} color="#93c5fd" />
+        <Text fontSize="xs" color="white" opacity={0.7}>
+          {waterDrops} капель
+        </Text>
+      </HStack>
     </Box>
   );
 }
@@ -25,9 +30,16 @@ export function ProgressPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [noteInput, setNoteInput] = useState('');
 
-  const { data: logs = [], isLoading } = useProgressLogs();
-  const { data: streak } = useStreak();
+  const { data: logs = [], isLoading, refetch: refetchLogs } = useProgressLogs();
+  const { data: streak, refetch: refetchStreak } = useStreak();
   const addMutation = useAddProgress();
+
+  useFocusEffect(
+    useCallback(() => {
+      refetchLogs();
+      refetchStreak();
+    }, [refetchLogs, refetchStreak])
+  );
 
   const bg = useColorModeValue('gray.50', 'gray.900');
 
@@ -59,8 +71,9 @@ export function ProgressPage() {
                   Рекорд: {streak?.maxDays || 0} дней
                 </Text>
                 {(streak?.currentDays || 0) >= 7 && (
-                  <Box bg="white" borderRadius="full" px={3} py={1} mt={2} alignSelf="flex-start">
-                    <Text color="primary.600" fontSize="xs" fontWeight="bold">🏆 7 дней!</Text>
+                  <Box bg="white" borderRadius="full" px={3} py={1} mt={2} alignSelf="flex-start" flexDirection="row" alignItems="center" style={{ gap: 4 }}>
+                    <Ionicons name="trophy" size={12} color="#1e40af" />
+                    <Text color="primary.600" fontSize="xs" fontWeight="bold">7 дней!</Text>
                   </Box>
                 )}
               </VStack>
@@ -79,8 +92,8 @@ export function ProgressPage() {
               borderStyle="dashed"
               alignItems="center"
             >
-              <Text fontSize="2xl" mb={1}>📝</Text>
-              <Text color="primary.500" fontWeight="600">Записать прогресс</Text>
+              <Ionicons name="create-outline" size={28} color="#1e40af" />
+              <Text color="primary.500" fontWeight="600" mt={1}>Записать прогресс</Text>
               <Text fontSize="sm" color="gray.400">ИИ проанализирует и даст обратную связь</Text>
             </Box>
           </Pressable>
@@ -92,7 +105,7 @@ export function ProgressPage() {
             <Text color="gray.400">Загрузка...</Text>
           ) : logs.length === 0 ? (
             <Box bg="white" borderRadius="xl" p={6} alignItems="center">
-              <Text fontSize="3xl" mb={2}>📊</Text>
+              <Ionicons name="bar-chart-outline" size={48} color="#9ca3af" style={{ marginBottom: 8 }} />
               <Text color="gray.400">Записей пока нет</Text>
               <Text fontSize="sm" color="gray.300">Добавьте первую запись о прогрессе</Text>
             </Box>
@@ -123,7 +136,7 @@ export function ProgressPage() {
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
         <Modal.Content>
           <Modal.CloseButton />
-          <Modal.Header>📝 Записать прогресс</Modal.Header>
+          <Modal.Header>Записать прогресс</Modal.Header>
           <Modal.Body>
             <VStack space={3}>
               <Text fontSize="sm" color="gray.500">

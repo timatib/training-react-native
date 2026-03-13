@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useColorModeValue } from 'native-base';
-import { Text } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import { ChatPage } from '../../pages/chat/ChatPage';
 import { CalendarPage } from '../../pages/calendar/CalendarPage';
@@ -18,10 +18,6 @@ export type MainTabParamList = {
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
-
-function TabIcon({ emoji }: { emoji: string }) {
-  return <Text style={{ fontSize: 22 }}>{emoji}</Text>;
-}
 
 export function MainNavigator() {
   const bgColor = useColorModeValue('#ffffff', '#1a1a2e');
@@ -49,7 +45,9 @@ export function MainNavigator() {
         component={ChatPage}
         options={{
           tabBarLabel: 'Чат',
-          tabBarIcon: () => <TabIcon emoji="💬" />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? 'chatbubble' : 'chatbubble-outline'} size={size} color={color} />
+          ),
         }}
       />
       <Tab.Screen
@@ -57,7 +55,9 @@ export function MainNavigator() {
         component={CalendarPage}
         options={{
           tabBarLabel: 'Календарь',
-          tabBarIcon: () => <TabIcon emoji="🗓" />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? 'calendar' : 'calendar-outline'} size={size} color={color} />
+          ),
         }}
       />
       <Tab.Screen
@@ -65,7 +65,9 @@ export function MainNavigator() {
         component={NutritionPage}
         options={{
           tabBarLabel: 'Питание',
-          tabBarIcon: () => <TabIcon emoji="🥗" />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? 'restaurant' : 'restaurant-outline'} size={size} color={color} />
+          ),
         }}
       />
       <Tab.Screen
@@ -73,7 +75,9 @@ export function MainNavigator() {
         component={ProgressPage}
         options={{
           tabBarLabel: 'Прогресс',
-          tabBarIcon: () => <TabIcon emoji="📊" />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? 'bar-chart' : 'bar-chart-outline'} size={size} color={color} />
+          ),
         }}
       />
       <Tab.Screen
@@ -81,7 +85,9 @@ export function MainNavigator() {
         component={ProfilePage}
         options={{
           tabBarLabel: 'Профиль',
-          tabBarIcon: () => <TabIcon emoji="👤" />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons name={focused ? 'person' : 'person-outline'} size={size} color={color} />
+          ),
         }}
       />
     </Tab.Navigator>

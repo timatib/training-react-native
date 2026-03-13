@@ -4,6 +4,7 @@ import {
   FormControl, ScrollView, KeyboardAvoidingView, useColorModeValue,
 } from 'native-base';
 import { Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../app/navigation/AuthNavigator';
@@ -44,7 +45,7 @@ export function RegisterPage() {
       <ScrollView flex={1} bg={bg} keyboardShouldPersistTaps="handled">
         <Box flex={1} px={6} pt={12} pb={8}>
           <VStack alignItems="center" mb={8}>
-            <Text fontSize="5xl" mb={2}>🤖</Text>
+            <Ionicons name="hardware-chip-outline" size={56} color="#1e40af" style={{ marginBottom: 8 }} />
             <Text fontSize="2xl" fontWeight="bold" color="primary.600">Создать аккаунт</Text>
             <Text fontSize="sm" color="gray.500" mt={1}>Начните своё фитнес-путешествие</Text>
           </VStack>

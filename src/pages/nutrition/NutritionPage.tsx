@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Box, VStack, HStack, Text, ScrollView, Input, Button,
   Progress, useColorModeValue, Pressable, Modal,
 } from 'native-base';
+import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { useDailySummary, useLogMeal } from '../../features/nutrition/useNutrition';
 
 export function NutritionPage() {
@@ -10,6 +12,12 @@ export function NutritionPage() {
   const [modalOpen, setModalOpen] = useState(false);
 
   const { data: summary, isLoading, refetch } = useDailySummary();
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
   const logMealMutation = useLogMeal();
 
   const bg = useColorModeValue('gray.50', 'gray.900');
@@ -101,7 +109,7 @@ export function NutritionPage() {
             <Text color="gray.400">Загрузка...</Text>
           ) : summary?.logs.length === 0 ? (
             <Box bg="white" borderRadius="xl" p={6} alignItems="center">
-              <Text fontSize="3xl" mb={2}>🥗</Text>
+              <Ionicons name="restaurant-outline" size={48} color="#9ca3af" style={{ marginBottom: 8 }} />
               <Text color="gray.400">Пока нет записей</Text>
               <Text fontSize="sm" color="gray.300">Добавьте первый приём пищи</Text>
             </Box>

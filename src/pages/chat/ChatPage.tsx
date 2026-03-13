@@ -4,6 +4,7 @@ import {
   useColorModeValue, SafeAreaView,
 } from 'native-base';
 import { KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useMessages } from '../../features/chat/useMessages';
 import { useSendMessage } from '../../features/chat/useSendMessage';
 import { ChatWidget } from '../../widgets/ChatWidget';
@@ -68,9 +69,16 @@ export function ChatPage() {
               <Text fontSize="lg" fontWeight="bold" color="primary.600">
                 Макс
               </Text>
-              <Text fontSize="xs" color={isResponding ? 'orange.500' : 'green.500'}>
-                {isResponding ? '🤔 Думаю...' : '✅ Онлайн'}
-              </Text>
+              <HStack alignItems="center" space={1}>
+                <Ionicons
+                  name={isResponding ? 'ellipsis-horizontal' : 'checkmark-circle'}
+                  size={12}
+                  color={isResponding ? '#f97316' : '#22c55e'}
+                />
+                <Text fontSize="xs" color={isResponding ? 'orange.500' : 'green.500'}>
+                  {isResponding ? 'Думаю...' : 'Онлайн'}
+                </Text>
+              </HStack>
             </VStack>
           </HStack>
         </Box>
@@ -91,8 +99,9 @@ export function ChatPage() {
         >
           {/* Bored button */}
           <Pressable onPress={handleBored} mb={2} alignSelf="flex-start">
-            <Box bg="primary.50" borderRadius="full" px={3} py={1} borderWidth={1} borderColor="primary.200">
-              <Text fontSize="xs" color="primary.600">😴 Мне скучно</Text>
+            <Box bg="primary.50" borderRadius="full" px={3} py={1} borderWidth={1} borderColor="primary.200" flexDirection="row" alignItems="center" style={{ gap: 4 }}>
+              <Ionicons name="moon-outline" size={12} color="#1e40af" />
+              <Text fontSize="xs" color="primary.600">Мне скучно</Text>
             </Box>
           </Pressable>
 
@@ -124,7 +133,7 @@ export function ChatPage() {
                 alignItems="center"
                 justifyContent="center"
               >
-                <Text fontSize="lg" color="white">↑</Text>
+                <Ionicons name="arrow-up" size={22} color="white" />
               </Box>
             </Pressable>
           </HStack>
