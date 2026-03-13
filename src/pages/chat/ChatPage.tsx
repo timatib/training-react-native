@@ -53,9 +53,9 @@ export function ChatPage() {
   };
 
   return (
-    <Box flex={1} bg={bg} safeArea>
+    <Box flex={1} bg={bg} safeAreaTop pb={4}> 
       <KeyboardAvoidingView
-        flex={1}
+        style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={90}
       >
@@ -98,7 +98,7 @@ export function ChatPage() {
           bg={useColorModeValue('white', 'gray.800')}
           px={3}
           pt={2}
-          pb={Platform.OS === 'ios' ? 4 : 2}
+          pb={0}
           borderTopWidth={1}
           borderTopColor={borderColor}
         >

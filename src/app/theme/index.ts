@@ -1,4 +1,5 @@
-import { extendTheme } from 'native-base';
+import React from 'react';
+import { extendTheme, ChevronDownIcon } from 'native-base';
 
 export const theme = extendTheme({
   colors: {
@@ -26,7 +27,7 @@ export const theme = extendTheme({
   },
   components: {
     Button: {
-      defaultProps: { colorScheme: 'primary' },
+      defaultProps: { colorScheme: 'primary', borderRadius: 'xl' },
     },
     Text: {
       baseStyle: {
@@ -45,6 +46,9 @@ export const theme = extendTheme({
       },
     },
     Select: {
+      defaultProps: {
+        dropdownIcon: React.createElement(ChevronDownIcon, { size: '4', marginRight: '4px' }),
+      },
       baseStyle: {
         _dark: {
           bg: 'gray.800',

@@ -354,7 +354,7 @@ export function ProfilePage() {
         <Modal.Content>
           <Modal.CloseButton />
           <Modal.Header>Сменить пароль</Modal.Header>
-          <Modal.Body>
+          <Modal.Body pt={0}>
             <VStack space={3}>
               {pwError && <Text color="red.500" fontSize="sm">{pwError}</Text>}
 
