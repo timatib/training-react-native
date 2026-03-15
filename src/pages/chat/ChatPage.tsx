@@ -199,7 +199,7 @@ export function ChatPage() {
             {inputText.trim() ? (
               <Pressable
                 onPress={handleSend}
-                disabled={isResponding}
+                isDisabled={isResponding}
                 opacity={isResponding ? 0.5 : 1}
               >
                 <Box
@@ -216,7 +216,7 @@ export function ChatPage() {
             ) : (
               <Pressable
                 onPress={handleMicPress}
-                disabled={isResponding || isTranscribing}
+                isDisabled={isResponding || isTranscribing}
                 opacity={isResponding || isTranscribing ? 0.5 : 1}
               >
                 <Box

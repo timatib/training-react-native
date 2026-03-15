@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { Alert } from 'react-native';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import {
   Modal, VStack, HStack, Text, Input, Button, Select, CheckIcon,
@@ -61,6 +62,18 @@ export function CreateWorkoutModal({
 
   const { fields, append, remove } = useFieldArray({ control, name: 'exercises' });
 
+  // Обновляем дату при каждом открытии модала
+  useEffect(() => {
+    if (isOpen) {
+      reset({
+        title: '',
+        date: initialDate || new Date().toISOString().slice(0, 10),
+        place: defaultPlace,
+        exercises: [{ name: '', sets: '3', reps: '10' }],
+      });
+    }
+  }, [isOpen, initialDate]);
+
   const onSubmit = async (values: FormValues) => {
     const exercises = values.exercises
       .filter((e) => e.name.trim() !== '')
@@ -70,16 +83,20 @@ export function CreateWorkoutModal({
         reps: parseInt(e.reps) || 10,
       }));
 
-    await api.post('/api/workouts', {
-      title: values.title.trim(),
-      date: new Date(values.date + 'T12:00:00').toISOString(),
-      place: values.place,
-      exercises,
-    });
-
-    reset();
-    onSuccess();
-    onClose();
+    try {
+      await api.post('/api/workouts', {
+        title: values.title.trim(),
+        date: new Date(values.date + 'T12:00:00').toISOString(),
+        place: values.place,
+        exercises,
+      });
+      reset();
+      onSuccess();
+      onClose();
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || err?.message || 'Не удалось сохранить тренировку';
+      Alert.alert('Ошибка', msg);
+    }
   };
 
   const handleClose = () => {
@@ -88,7 +105,7 @@ export function CreateWorkoutModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size="full">
+    <Modal isOpen={isOpen} onClose={handleClose} size="xl">
       <Modal.Content maxH="90%" borderRadius="2xl" mx={4}>
         <Modal.Header borderBottomWidth={1}>
           <Text fontSize="lg" fontWeight="bold">Новая тренировка</Text>
@@ -128,6 +145,10 @@ export function CreateWorkoutModal({
                   rules={{
                     required: 'Введите дату',
                     pattern: { value: /^\d{4}-\d{2}-\d{2}$/, message: 'Формат: ГГГГ-ММ-ДД' },
+                    validate: (val) => {
+                      const today = new Date().toISOString().slice(0, 10);
+                      return val >= today || 'Нельзя создавать тренировку на прошедшую дату';
+                    },
                   }}
                   render={({ field }) => (
                     <Input

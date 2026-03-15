@@ -1,6 +1,34 @@
 import { useState, useRef, useCallback } from 'react';
+import { Alert } from 'react-native';
 import { Audio } from 'expo-av';
 import api from '../../shared/api/axios';
+
+// AAC/M4A — совместим с iOS и Android, принимается Whisper
+const RECORDING_OPTIONS: Audio.RecordingOptions = {
+  android: {
+    extension: '.m4a',
+    outputFormat: Audio.AndroidOutputFormat.MPEG_4,
+    audioEncoder: Audio.AndroidAudioEncoder.AAC,
+    sampleRate: 44100,
+    numberOfChannels: 1,
+    bitRate: 128000,
+  },
+  ios: {
+    extension: '.m4a',
+    outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
+    audioQuality: Audio.IOSAudioQuality.HIGH,
+    sampleRate: 44100,
+    numberOfChannels: 1,
+    bitRate: 128000,
+    linearPCMBitDepth: 16,
+    linearPCMIsBigEndian: false,
+    linearPCMIsFloat: false,
+  },
+  web: {
+    mimeType: 'audio/webm',
+    bitsPerSecond: 128000,
+  },
+};
 
 export function useTranscribe() {
   const [isRecording, setIsRecording] = useState(false);
@@ -13,16 +41,20 @@ export function useTranscribe() {
   const startRecording = useCallback(async () => {
     try {
       const { granted } = await Audio.requestPermissionsAsync();
-      if (!granted) return;
+      if (!granted) {
+        Alert.alert(
+          'Нет доступа к микрофону',
+          'Разрешите доступ к микрофону в настройках устройства, чтобы использовать голосовой ввод.'
+        );
+        return;
+      }
 
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
       });
 
-      const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY
-      );
+      const { recording } = await Audio.Recording.createAsync(RECORDING_OPTIONS);
       recordingRef.current = recording;
       setIsRecording(true);
       setRecordingDuration(0);
@@ -30,8 +62,8 @@ export function useTranscribe() {
       timerRef.current = setInterval(() => {
         setRecordingDuration((d) => d + 1);
       }, 1000);
-    } catch {
-      // ignore permission or device errors
+    } catch (err: any) {
+      Alert.alert('Ошибка записи', err?.message || 'Не удалось запустить запись');
     }
   }, []);
 
@@ -67,7 +99,8 @@ export function useTranscribe() {
         { headers: { 'Content-Type': 'multipart/form-data' } }
       );
       return data.text || '';
-    } catch {
+    } catch (err: any) {
+      Alert.alert('Ошибка распознавания', err?.response?.data?.error || 'Не удалось распознать речь');
       return '';
     } finally {
       setIsTranscribing(false);

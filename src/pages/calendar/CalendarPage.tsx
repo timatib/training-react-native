@@ -3,8 +3,9 @@ import {
   Box, VStack, HStack, Text, ScrollView, Button, Pressable, useColorModeValue, Divider,
 } from 'native-base';
 import { useFocusEffect } from '@react-navigation/native';
+import { Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useCalendar, useCompleteWorkout } from '../../features/calendar/useCalendar';
+import { useCalendar, useCompleteWorkout, useDeleteWorkout } from '../../features/calendar/useCalendar';
 import { CalendarWidget } from '../../widgets/CalendarWidget';
 import { CreateWorkoutModal } from '../../widgets/CalendarWidget/CreateWorkoutModal';
 import { WorkoutPlan } from '../../entities/workout/types';
@@ -19,6 +20,7 @@ export function CalendarPage() {
 
   const { data: workouts = [], isLoading, refetch } = useCalendar(currentMonth);
   const completeMutation = useCompleteWorkout();
+  const deleteMutation = useDeleteWorkout();
 
   useFocusEffect(
     useCallback(() => {
@@ -49,6 +51,21 @@ export function CalendarPage() {
     setSelectedWorkouts((prev) =>
       prev.map((w) => (w.id === workoutId ? { ...w, completed: true } : w))
     );
+  };
+
+  const handleDelete = (workoutId: string) => {
+    Alert.alert('Удалить тренировку?', 'Это действие нельзя отменить.', [
+      { text: 'Отмена', style: 'cancel' },
+      {
+        text: 'Удалить',
+        style: 'destructive',
+        onPress: async () => {
+          await deleteMutation.mutateAsync(workoutId);
+          refetch();
+          setSelectedWorkouts((prev) => prev.filter((w) => w.id !== workoutId));
+        },
+      },
+    ]);
   };
 
   return (
@@ -88,17 +105,22 @@ export function CalendarPage() {
                   {idx > 0 && <Divider mb={4} />}
 
                   <HStack justifyContent="space-between" alignItems="center" mb={3}>
-                    <Text fontWeight="bold" fontSize="lg">{workout.title}</Text>
-                    {workout.completed ? (
-                      <HStack space={1} alignItems="center">
-                        <Ionicons name="checkmark-circle" size={16} color="#10b981" />
-                        <Text fontSize="sm" color="green.500" fontWeight="600">Выполнено</Text>
-                      </HStack>
-                    ) : (
-                      <Box bg="blue.50" borderRadius="full" px={3} py={0.5}>
-                        <Text fontSize="xs" color="blue.600" fontWeight="500">Запланировано</Text>
-                      </Box>
-                    )}
+                    <Text fontWeight="bold" fontSize="lg" flex={1}>{workout.title}</Text>
+                    <HStack space={2} alignItems="center">
+                      {workout.completed ? (
+                        <HStack space={1} alignItems="center">
+                          <Ionicons name="checkmark-circle" size={16} color="#10b981" />
+                          <Text fontSize="sm" color="green.500" fontWeight="600">Выполнено</Text>
+                        </HStack>
+                      ) : (
+                        <Box bg="blue.50" borderRadius="full" px={3} py={0.5}>
+                          <Text fontSize="xs" color="blue.600" fontWeight="500">Запланировано</Text>
+                        </Box>
+                      )}
+                      <Pressable onPress={() => handleDelete(workout.id)}>
+                        <Ionicons name="trash-outline" size={18} color="#ef4444" />
+                      </Pressable>
+                    </HStack>
                   </HStack>
 
                   <VStack space={0}>
@@ -145,7 +167,7 @@ export function CalendarPage() {
                     ))}
                   </VStack>
 
-                  {!workout.completed && (
+                  {!workout.completed && new Date(workout.date) <= new Date() && (
                     <Button
                       mt={4}
                       onPress={() => handleComplete(workout.id)}
@@ -194,19 +216,21 @@ export function CalendarPage() {
       <Pressable
         position="absolute"
         bottom={6}
-        right={6}
+        right={4}
         onPress={() => setShowCreateModal(true)}
         shadow={4}
       >
         <Box
           bg="primary.500"
-          w={14}
-          h={14}
           borderRadius="full"
+          px={4}
+          py={3}
+          flexDirection="row"
           alignItems="center"
-          justifyContent="center"
+          style={{ gap: 6 }}
         >
-          <Ionicons name="add" size={28} color="white" />
+          <Ionicons name="add" size={20} color="white" />
+          <Text color="white" fontWeight="bold" fontSize="sm">Добавить расписание</Text>
         </Box>
       </Pressable>
 

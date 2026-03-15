@@ -31,6 +31,19 @@ export function useCreateWorkout() {
   });
 }
 
+export function useDeleteWorkout() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/api/workouts/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
+    },
+  });
+}
+
 export function useCompleteWorkout() {
   const queryClient = useQueryClient();
 
