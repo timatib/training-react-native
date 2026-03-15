@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, View, StyleSheet } from 'react-native';
-import { Text } from 'native-base';
+import { Ionicons } from '@expo/vector-icons';
 
 type Emotion = 'default' | 'happy' | 'motivated' | 'sad' | 'thinking';
 
@@ -10,12 +10,12 @@ interface RobotAvatarProps {
   size?: number;
 }
 
-const EMOTION_EMOJI: Record<Emotion, string> = {
-  default: '🤖',
-  happy: '😊',
-  motivated: '💪',
-  sad: '😔',
-  thinking: '🤔',
+const EMOTION_ICON: Record<Emotion, keyof typeof Ionicons.glyphMap> = {
+  default: 'hardware-chip-outline',
+  happy: 'happy-outline',
+  motivated: 'fitness-outline',
+  sad: 'sad-outline',
+  thinking: 'help-circle-outline',
 };
 
 export function RobotAvatar({ emotion = 'default', isThinking = false, size = 80 }: RobotAvatarProps) {
@@ -42,7 +42,7 @@ export function RobotAvatar({ emotion = 'default', isThinking = false, size = 80
   }, [isThinking]);
 
   const currentEmotion = isThinking ? 'thinking' : emotion;
-  const emoji = EMOTION_EMOJI[currentEmotion];
+  const iconName = EMOTION_ICON[currentEmotion];
 
   return (
     <Animated.View
@@ -56,10 +56,9 @@ export function RobotAvatar({ emotion = 'default', isThinking = false, size = 80
         },
       ]}
     >
-      <View style={[styles.robotBody, { borderRadius: size / 2, backgroundColor: '#1e40af' }]}>
-        <Text style={{ fontSize: size * 0.55 }}>{emoji}</Text>
+      <View style={[styles.robotBody, { borderRadius: size / 2 }]}>
+        <Ionicons name={iconName} size={size * 0.55} color="white" />
       </View>
-      {/* Status indicator */}
       <View
         style={[
           styles.statusDot,
@@ -81,7 +80,8 @@ const styles = StyleSheet.create({
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#1e40af',
+    backgroundColor: '#870BF4',
+    shadowColor: '#870BF4',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

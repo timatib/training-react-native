@@ -1,11 +1,27 @@
 import React from 'react';
 import { Box, Text, VStack } from 'native-base';
+import Markdown from 'react-native-markdown-display';
 import { Message } from '../../entities/message/types';
-import { WorkoutCard } from './WorkoutCard';
 
 interface MessageBubbleProps {
   message: Message;
 }
+
+const markdownStyles = {
+  body: { color: '#1f2937', fontSize: 15, lineHeight: 22 },
+  paragraph: { marginTop: 0, marginBottom: 4 },
+  strong: { fontWeight: 'bold' },
+  bullet_list: { marginBottom: 4 },
+  ordered_list: { marginBottom: 4 },
+  list_item: { marginBottom: 2 },
+  code_inline: {
+    backgroundColor: '#e5e7eb',
+    borderRadius: 4,
+    paddingHorizontal: 4,
+    fontFamily: 'monospace',
+    fontSize: 13,
+  },
+};
 
 export function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.role === 'USER';
@@ -23,32 +39,25 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       mx={3}
     >
       <VStack space={1}>
-        {/* Workout cards */}
-        {message.metadata?.workoutCards?.map((card, i) => (
-          <WorkoutCard key={i} card={card} />
-        ))}
-
-        {/* Text bubble */}
-        {message.content && (
-          <Box
-            bg={isUser ? 'primary.500' : 'gray.100'}
-            borderRadius="2xl"
-            borderBottomRightRadius={isUser ? 'sm' : '2xl'}
-            borderBottomLeftRadius={isUser ? '2xl' : 'sm'}
-            px={4}
-            py={3}
-          >
-            <Text
-              color={isUser ? 'white' : 'gray.800'}
-              fontSize="md"
-              lineHeight="lg"
-            >
+        <Box
+          bg={isUser ? 'primary.500' : 'gray.100'}
+          borderRadius="2xl"
+          borderBottomRightRadius={isUser ? 'sm' : '2xl'}
+          borderBottomLeftRadius={isUser ? '2xl' : 'sm'}
+          px={4}
+          py={3}
+        >
+          {isUser ? (
+            <Text color="white" fontSize="md" lineHeight="lg">
               {message.content}
             </Text>
-          </Box>
-        )}
+          ) : (
+            <Markdown style={markdownStyles}>
+              {message.content}
+            </Markdown>
+          )}
+        </Box>
 
-        {/* Timestamp */}
         <Text
           fontSize="xs"
           color="gray.400"
