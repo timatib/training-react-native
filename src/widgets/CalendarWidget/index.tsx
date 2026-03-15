@@ -1,50 +1,72 @@
-import React, { useState } from 'react';
-import { Box, HStack, Text, Pressable, useColorModeValue } from 'native-base';
+import React from 'react';
+import { Calendar, DateData, LocaleConfig } from 'react-native-calendars';
+import { useColorModeValue } from 'native-base';
+import { useTranslation } from 'react-i18next';
 import { WorkoutPlan } from '../../entities/workout/types';
+
+// ─── Locales ────────────────────────────────────────────────────────────────
+
+LocaleConfig.locales['ru'] = {
+  monthNames: [
+    'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+    'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь',
+  ],
+  monthNamesShort: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
+  dayNames: ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'],
+  dayNamesShort: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+  today: 'Сегодня',
+};
+
+LocaleConfig.locales['en'] = {
+  monthNames: [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December',
+  ],
+  monthNamesShort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+  dayNames: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+  dayNamesShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+  today: 'Today',
+};
+
+LocaleConfig.defaultLocale = 'ru';
+
+// ─── Component ───────────────────────────────────────────────────────────────
 
 interface CalendarWidgetProps {
   workouts: WorkoutPlan[];
   onDayPress?: (date: Date, dayWorkouts: WorkoutPlan[]) => void;
+  selectedDate?: Date | null;
 }
 
-const WEEK_DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
-const MONTHS = [
-  'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
-  'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь',
-];
+const STATUS_COLORS = {
+  planned: '#3b82f6',
+  completed: '#10b981',
+  missed: '#ef4444',
+};
 
-export function CalendarWidget({ workouts, onDayPress }: CalendarWidgetProps) {
+export function CalendarWidget({ workouts, onDayPress, selectedDate }: CalendarWidgetProps) {
   const today = new Date();
-  const [currentDate, setCurrentDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const { i18n } = useTranslation();
 
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
+  // Sync calendar locale with app language
+  LocaleConfig.defaultLocale = i18n.language === 'en' ? 'en' : 'ru';
 
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
+  const bgColor = useColorModeValue('#ffffff', '#1f2937');
+  const textColor = useColorModeValue('#374151', '#e5e7eb');
+  const monthTextColor = useColorModeValue('#111827', '#f9fafb');
 
-  let startOffset = firstDay.getDay() - 1;
-  if (startOffset < 0) startOffset = 6;
-
-  const days: (number | null)[] = [];
-  for (let i = 0; i < startOffset; i++) days.push(null);
-  for (let i = 1; i <= lastDay.getDate(); i++) days.push(i);
-
-  const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
-  const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
-
-  const getWorkoutsForDay = (day: number): WorkoutPlan[] => {
+  const getWorkoutsForDate = (dateStr: string): WorkoutPlan[] => {
     return workouts.filter((w) => {
       const d = new Date(w.date);
-      return d.getFullYear() === year && d.getMonth() === month && d.getDate() === day;
+      return d.toISOString().slice(0, 10) === dateStr;
     });
   };
 
-  const getDayStatus = (day: number): 'planned' | 'completed' | 'missed' | null => {
-    const dayWorkouts = getWorkoutsForDay(day);
+  const getDayStatus = (dateStr: string): 'planned' | 'completed' | 'missed' | null => {
+    const dayWorkouts = getWorkoutsForDate(dateStr);
     if (dayWorkouts.length === 0) return null;
 
-    const date = new Date(year, month, day);
+    const date = new Date(dateStr);
     const isPast = date < today;
 
     if (dayWorkouts.every((w) => w.completed)) return 'completed';
@@ -52,102 +74,72 @@ export function CalendarWidget({ workouts, onDayPress }: CalendarWidgetProps) {
     return 'planned';
   };
 
-  const statusColors: Record<string, string> = {
-    planned: '#3b82f6',
-    completed: '#10b981',
-    missed: '#ef4444',
+  // Build markedDates
+  const markedDates: Record<string, any> = {};
+
+  workouts.forEach((w) => {
+    const dateStr = new Date(w.date).toISOString().slice(0, 10);
+    const status = getDayStatus(dateStr);
+    if (!status) return;
+
+    markedDates[dateStr] = {
+      ...(markedDates[dateStr] || {}),
+      dots: [{ key: status, color: STATUS_COLORS[status] }],
+    };
+  });
+
+  if (selectedDate) {
+    const selStr = selectedDate.toISOString().slice(0, 10);
+    markedDates[selStr] = {
+      ...(markedDates[selStr] || {}),
+      selected: true,
+      selectedColor: '#870BF4',
+    };
+  }
+
+  const handleDayPress = (day: DateData) => {
+    const date = new Date(day.dateString + 'T12:00:00');
+    const dayWorkouts = getWorkoutsForDate(day.dateString);
+    onDayPress?.(date, dayWorkouts);
   };
 
-  const cardBg = useColorModeValue('white', 'gray.800');
-  const dayColor = useColorModeValue('gray.700', 'gray.200');
-  const todayBg = useColorModeValue('primary.50', 'primary.900');
-  const headerColor = useColorModeValue('gray.800', 'gray.100');
-
   return (
-    <Box bg={cardBg} borderRadius="xl" shadow={2} p={4}>
-      {/* Header */}
-      <HStack justifyContent="space-between" alignItems="center" mb={4}>
-        <Pressable onPress={prevMonth} p={2}>
-          <Text fontSize="xl" color={headerColor}>‹</Text>
-        </Pressable>
-        <Text fontSize="lg" fontWeight="bold" color={headerColor}>
-          {MONTHS[month]} {year}
-        </Text>
-        <Pressable onPress={nextMonth} p={2}>
-          <Text fontSize="xl" color={headerColor}>›</Text>
-        </Pressable>
-      </HStack>
-
-      {/* Week days */}
-      <HStack justifyContent="space-around" mb={2}>
-        {WEEK_DAYS.map((d) => (
-          <Text key={d} fontSize="xs" color="gray.400" fontWeight="600" textAlign="center" flex={1}>
-            {d}
-          </Text>
-        ))}
-      </HStack>
-
-      {/* Days grid */}
-      <Box>
-        {Array.from({ length: Math.ceil(days.length / 7) }).map((_, weekIdx) => (
-          <HStack key={weekIdx} justifyContent="space-around" mb={1}>
-            {days.slice(weekIdx * 7, weekIdx * 7 + 7).map((day, dayIdx) => {
-              if (!day) return <Box key={dayIdx} flex={1} h={10} />;
-
-              const status = getDayStatus(day);
-              const isToday =
-                day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-              const dayWorkouts = getWorkoutsForDay(day);
-
-              return (
-                <Pressable
-                  key={dayIdx}
-                  flex={1}
-                  alignItems="center"
-                  justifyContent="center"
-                  h={10}
-                  borderRadius="full"
-                  bg={isToday ? todayBg : 'transparent'}
-                  onPress={() => onDayPress?.(new Date(year, month, day), dayWorkouts)}
-                >
-                  <Text
-                    fontSize="sm"
-                    fontWeight={isToday ? 'bold' : 'normal'}
-                    color={isToday ? 'primary.500' : dayColor}
-                  >
-                    {day}
-                  </Text>
-                  {status && (
-                    <Box
-                      w={1.5}
-                      h={1.5}
-                      borderRadius="full"
-                      bg={statusColors[status]}
-                      mt={0.5}
-                    />
-                  )}
-                </Pressable>
-              );
-            })}
-          </HStack>
-        ))}
-      </Box>
-
-      {/* Legend */}
-      <HStack space={4} mt={4} justifyContent="center">
-        {[
-          { color: '#3b82f6', label: 'Запланировано' },
-          { color: '#10b981', label: 'Выполнено' },
-          { color: '#ef4444', label: 'Пропущено' },
-        ].map((item) => (
-          <HStack key={item.label} space={1} alignItems="center">
-            <Box w={2} h={2} borderRadius="full" bg={item.color} />
-            <Text fontSize="xs" color="gray.500">
-              {item.label}
-            </Text>
-          </HStack>
-        ))}
-      </HStack>
-    </Box>
+    <Calendar
+      key={i18n.language}
+      markingType="multi-dot"
+      markedDates={markedDates}
+      onDayPress={handleDayPress}
+      firstDay={1}
+      enableSwipeMonths
+      theme={{
+        backgroundColor: bgColor,
+        calendarBackground: bgColor,
+        textSectionTitleColor: '#9ca3af',
+        selectedDayBackgroundColor: '#870BF4',
+        selectedDayTextColor: '#ffffff',
+        todayTextColor: '#870BF4',
+        todayBackgroundColor: 'transparent',
+        dayTextColor: textColor,
+        textDisabledColor: '#9ca3af',
+        dotColor: '#870BF4',
+        selectedDotColor: '#ffffff',
+        arrowColor: '#870BF4',
+        monthTextColor: monthTextColor,
+        indicatorColor: '#870BF4',
+        textDayFontSize: 14,
+        textMonthFontSize: 16,
+        textDayHeaderFontSize: 12,
+        textMonthFontWeight: 'bold',
+      }}
+      style={{
+        borderRadius: 16,
+        overflow: 'hidden',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      }}
+    />
   );
 }

@@ -1,20 +1,21 @@
 import React, { useState, useCallback } from 'react';
 import {
-  Box, VStack, HStack, Text, ScrollView, Modal, Button, useColorModeValue,
+  Box, VStack, HStack, Text, ScrollView, Button, Pressable, useColorModeValue, Divider,
 } from 'native-base';
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { useCalendar, useCompleteWorkout } from '../../features/calendar/useCalendar';
 import { CalendarWidget } from '../../widgets/CalendarWidget';
+import { CreateWorkoutModal } from '../../widgets/CalendarWidget/CreateWorkoutModal';
 import { WorkoutPlan } from '../../entities/workout/types';
-import { WorkoutCard } from '../../widgets/ChatWidget/WorkoutCard';
-import { WorkoutCard as WCardType } from '../../entities/message/types';
 
 export function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState(
     new Date().toISOString().slice(0, 7)
   );
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedWorkouts, setSelectedWorkouts] = useState<WorkoutPlan[]>([]);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const { data: workouts = [], isLoading, refetch } = useCalendar(currentMonth);
   const completeMutation = useCompleteWorkout();
@@ -27,17 +28,27 @@ export function CalendarPage() {
 
   const bg = useColorModeValue('gray.50', 'gray.900');
   const cardBg = useColorModeValue('white', 'gray.800');
+  const exerciseBorderColor = useColorModeValue('gray.100', 'gray.700');
+  const exerciseNumBg = useColorModeValue('primary.50', 'primary.900');
+  const metaBg = useColorModeValue('gray.100', 'gray.700');
+  const metaTextColor = useColorModeValue('gray.600', 'gray.300');
 
   const handleDayPress = (date: Date, dayWorkouts: WorkoutPlan[]) => {
-    if (dayWorkouts.length > 0) {
+    if (selectedDate?.toDateString() === date.toDateString()) {
+      setSelectedDate(null);
+      setSelectedWorkouts([]);
+    } else {
+      setSelectedDate(date);
       setSelectedWorkouts(dayWorkouts);
-      setModalOpen(true);
     }
   };
 
   const handleComplete = async (workoutId: string) => {
     await completeMutation.mutateAsync(workoutId);
-    setModalOpen(false);
+    refetch();
+    setSelectedWorkouts((prev) =>
+      prev.map((w) => (w.id === workoutId ? { ...w, completed: true } : w))
+    );
   };
 
   return (
@@ -51,7 +62,116 @@ export function CalendarPage() {
               <Text color="gray.400">Загрузка...</Text>
             </Box>
           ) : (
-            <CalendarWidget workouts={workouts} onDayPress={handleDayPress} />
+            <CalendarWidget
+              workouts={workouts}
+              onDayPress={handleDayPress}
+              selectedDate={selectedDate}
+            />
+          )}
+
+          {/* Inline workout details */}
+          {selectedDate && selectedWorkouts.length > 0 && (
+            <Box mt={4} bg={cardBg} borderRadius="xl" shadow={1} overflow="hidden">
+              <Box px={4} py={3} bg="primary.500">
+                <HStack justifyContent="space-between" alignItems="center">
+                  <Text color="white" fontWeight="bold" fontSize="md">
+                    {selectedDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'long' })}
+                  </Text>
+                  <Pressable onPress={() => { setSelectedDate(null); setSelectedWorkouts([]); }}>
+                    <Ionicons name="close" size={20} color="white" />
+                  </Pressable>
+                </HStack>
+              </Box>
+
+              {selectedWorkouts.map((workout, idx) => (
+                <Box key={workout.id} px={4} py={4}>
+                  {idx > 0 && <Divider mb={4} />}
+
+                  <HStack justifyContent="space-between" alignItems="center" mb={3}>
+                    <Text fontWeight="bold" fontSize="lg">{workout.title}</Text>
+                    {workout.completed ? (
+                      <HStack space={1} alignItems="center">
+                        <Ionicons name="checkmark-circle" size={16} color="#10b981" />
+                        <Text fontSize="sm" color="green.500" fontWeight="600">Выполнено</Text>
+                      </HStack>
+                    ) : (
+                      <Box bg="blue.50" borderRadius="full" px={3} py={0.5}>
+                        <Text fontSize="xs" color="blue.600" fontWeight="500">Запланировано</Text>
+                      </Box>
+                    )}
+                  </HStack>
+
+                  <VStack space={0}>
+                    {(workout.exercises as any[]).map((ex, i) => (
+                      <HStack
+                        key={i}
+                        space={3}
+                        alignItems="center"
+                        py={3}
+                        borderBottomWidth={1}
+                        borderBottomColor={exerciseBorderColor}
+                      >
+                        <Box
+                          w={7}
+                          h={7}
+                          borderRadius="full"
+                          bg={exerciseNumBg}
+                          alignItems="center"
+                          justifyContent="center"
+                        >
+                          <Text fontSize="xs" color="primary.600" fontWeight="bold">{i + 1}</Text>
+                        </Box>
+                        <Text flex={1} fontSize="sm" fontWeight="500">
+                          {ex.name || ex.exercise}
+                        </Text>
+                        <HStack space={1}>
+                          {ex.sets && (
+                            <Box bg={metaBg} borderRadius="full" px={2} py={0.5}>
+                              <Text fontSize="xs" color={metaTextColor}>{ex.sets} подх.</Text>
+                            </Box>
+                          )}
+                          {ex.reps && (
+                            <Box bg={metaBg} borderRadius="full" px={2} py={0.5}>
+                              <Text fontSize="xs" color={metaTextColor}>{ex.reps} повт.</Text>
+                            </Box>
+                          )}
+                          {ex.duration && (
+                            <Box bg={metaBg} borderRadius="full" px={2} py={0.5}>
+                              <Text fontSize="xs" color={metaTextColor}>{ex.duration} мин.</Text>
+                            </Box>
+                          )}
+                        </HStack>
+                      </HStack>
+                    ))}
+                  </VStack>
+
+                  {!workout.completed && (
+                    <Button
+                      mt={4}
+                      onPress={() => handleComplete(workout.id)}
+                      isLoading={completeMutation.isPending}
+                      colorScheme="green"
+                      borderRadius="xl"
+                    >
+                      Отметить выполненной
+                    </Button>
+                  )}
+                </Box>
+              ))}
+            </Box>
+          )}
+
+          {/* Empty state when empty day tapped */}
+          {selectedDate && selectedWorkouts.length === 0 && (
+            <Box mt={4} bg={cardBg} borderRadius="xl" p={5} shadow={1} alignItems="center">
+              <Ionicons name="calendar-outline" size={32} color="#9ca3af" />
+              <Text color="gray.400" mt={2} textAlign="center">
+                На {selectedDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })} тренировок нет
+              </Text>
+              <Text color="gray.400" fontSize="xs" textAlign="center" mt={1}>
+                Нажмите «+» чтобы добавить вручную или попросите Макса в чате
+              </Text>
+            </Box>
           )}
 
           {/* Stats */}
@@ -62,9 +182,7 @@ export function CalendarPage() {
               { label: 'Предстоит', count: workouts.filter((w) => !w.completed).length, color: 'blue.500' },
             ].map((item) => (
               <Box key={item.label} flex={1} bg={cardBg} borderRadius="xl" p={3} shadow={1} alignItems="center">
-                <Text fontSize="2xl" fontWeight="bold" color={item.color}>
-                  {item.count}
-                </Text>
+                <Text fontSize="2xl" fontWeight="bold" color={item.color}>{item.count}</Text>
                 <Text fontSize="xs" color="gray.500">{item.label}</Text>
               </Box>
             ))}
@@ -72,55 +190,32 @@ export function CalendarPage() {
         </Box>
       </ScrollView>
 
-      {/* Workout detail modal */}
-      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} size="xl">
-        <Modal.Content>
-          <Modal.CloseButton />
-          <Modal.Header>
-            {selectedWorkouts[0]?.title || 'Тренировка'}
-          </Modal.Header>
-          <Modal.Body>
-            <ScrollView>
-              {selectedWorkouts.map((workout) => (
-                <VStack key={workout.id} space={3}>
-                  <HStack justifyContent="space-between">
-                    <Text fontSize="sm" color="gray.500">
-                      {new Date(workout.date).toLocaleDateString('ru-RU')}
-                    </Text>
-                    {workout.completed && (
-                      <Text fontSize="sm" color="green.500" fontWeight="600">✅ Выполнено</Text>
-                    )}
-                  </HStack>
+      {/* FAB — Add workout manually */}
+      <Pressable
+        position="absolute"
+        bottom={6}
+        right={6}
+        onPress={() => setShowCreateModal(true)}
+        shadow={4}
+      >
+        <Box
+          bg="primary.500"
+          w={14}
+          h={14}
+          borderRadius="full"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <Ionicons name="add" size={28} color="white" />
+        </Box>
+      </Pressable>
 
-                  {(workout.exercises as any[]).map((ex, i) => (
-                    <WorkoutCard
-                      key={i}
-                      card={{
-                        type: 'workout_card',
-                        exercise: ex.name || ex.exercise,
-                        sets: ex.sets || 3,
-                        reps: ex.reps || 12,
-                        icon: ex.icon || 'dumbbell',
-                      } as WCardType}
-                    />
-                  ))}
-
-                  {!workout.completed && (
-                    <Button
-                      onPress={() => handleComplete(workout.id)}
-                      isLoading={completeMutation.isPending}
-                      colorScheme="green"
-                      borderRadius="xl"
-                    >
-                      ✅ Отметить выполненной
-                    </Button>
-                  )}
-                </VStack>
-              ))}
-            </ScrollView>
-          </Modal.Body>
-        </Modal.Content>
-      </Modal>
+      <CreateWorkoutModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={() => refetch()}
+        initialDate={selectedDate ? selectedDate.toISOString().slice(0, 10) : undefined}
+      />
     </Box>
   );
 }

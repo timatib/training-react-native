@@ -12,6 +12,25 @@ export function useCalendar(month: string) {
   });
 }
 
+export function useCreateWorkout() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (dto: {
+      title: string;
+      date: string;
+      place: string;
+      exercises: { name: string; sets: number; reps: number }[];
+    }) => {
+      const { data } = await api.post('/api/workouts', dto);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['calendar'] });
+    },
+  });
+}
+
 export function useCompleteWorkout() {
   const queryClient = useQueryClient();
 
